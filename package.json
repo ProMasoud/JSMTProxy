@@ -1,0 +1,22 @@
+{
+  "name": "jsmtproxy",
+  "version": "1.0.0",
+  "description": "[![Telegram Channel](https://img.shields.io/badge/Channel-Telegram-blue.svg)](https://t.me/JSMTProxy)",
+  "main": "mtproxy.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ProMasoud/JSMTProxy.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ProMasoud/JSMTProxy/issues"
+  },
+  "homepage": "https://github.com/ProMasoud/JSMTProxy#readme",
+  "dependencies": {
+    "pm2": "^3.4.0"
+  }
+}
