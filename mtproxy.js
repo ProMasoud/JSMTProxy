@@ -9,7 +9,7 @@ const http = require('http');
 http.createServer(function (req, res) {
 	res.writeHead(200, { 'Content-Type': 'text/plain' });
 	res.end('Hello World!');
-}).listen(443);
+}).listen(process.env.PORT || 80);
 
 const CON_TIMEOUT = 5 * 60000; //5 Mins
 const REPORT_CON_SEC = 10;
