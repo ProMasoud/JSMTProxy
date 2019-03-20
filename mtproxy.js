@@ -6,6 +6,7 @@ const fs = require('fs');
 const http = require('http');
 const port = process.env.PORT || 80
 
+
 // http.createServer(function (req, res) {
 // 	res.writeHead(200, { 'Content-Type': 'text/plain' });
 // 	res.end('Hello World!');
@@ -32,6 +33,9 @@ for (let i = 0; i < telegram_servers.length; i++) {
 }
 
 var configObj = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+
+console.log(configObj, port)
+
 
 function reverseInplace(buffer) {
 	for (var i = 0, j = buffer.length - 1; i < j; ++i, --j) {
