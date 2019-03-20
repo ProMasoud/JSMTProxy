@@ -137,116 +137,116 @@ setInterval(() => {
 	}
 }, 20);
 
-net.createServer(function (socket) {
+// net.createServer(function (socket) {
 
-	socket.setTimeout(CON_TIMEOUT);
+// 	socket.setTimeout(CON_TIMEOUT);
 
-	socket.on('error', (err) => {
-		socket.destroy();
-	});
+// 	socket.on('error', (err) => {
+// 		socket.destroy();
+// 	});
 
-	socket.on('timeout', () => {
-		socket.destroy();
-	});
+// 	socket.on('timeout', () => {
+// 		socket.destroy();
+// 	});
 
-	socket.on('end', function () {
-		if (socket.server_socket != null) {
-			socket.server_socket.destroy();
-		}
-	});
+// 	socket.on('end', function () {
+// 		if (socket.server_socket != null) {
+// 			socket.server_socket.destroy();
+// 		}
+// 	});
 
-	socket.on('data', function (data) {
+// 	socket.on('data', function (data) {
 
-		if (socket.init == null && (data.length == 41 || data.length == 56)) {
-			let client_ip = socket.remoteAddress.substr(7, socket.remoteAddress.length);
-			socket.destroy();
-			return;
-		}
+// 		if (socket.init == null && (data.length == 41 || data.length == 56)) {
+// 			let client_ip = socket.remoteAddress.substr(7, socket.remoteAddress.length);
+// 			socket.destroy();
+// 			return;
+// 		}
 
-		if (socket.init == null && data.length < 64) {
-			socket.destroy();
-			return;
-		}
+// 		if (socket.init == null && data.length < 64) {
+// 			socket.destroy();
+// 			return;
+// 		}
 
-		if (socket.init == null) {
-			let buf64 = Buffer.allocUnsafe(64);
-			data.copy(buf64);
+// 		if (socket.init == null) {
+// 			let buf64 = Buffer.allocUnsafe(64);
+// 			data.copy(buf64);
 
-			let keyIv = Buffer.allocUnsafe(48);
-			buf64.copy(keyIv, 0, 8);
+// 			let keyIv = Buffer.allocUnsafe(48);
+// 			buf64.copy(keyIv, 0, 8);
 
-			let decryptKey_client = Buffer.allocUnsafe(32);
-			keyIv.copy(decryptKey_client, 0, 0);
+// 			let decryptKey_client = Buffer.allocUnsafe(32);
+// 			keyIv.copy(decryptKey_client, 0, 0);
 
-			let decryptIv_client = Buffer.allocUnsafe(16);
-			keyIv.copy(decryptIv_client, 0, 32);
+// 			let decryptIv_client = Buffer.allocUnsafe(16);
+// 			keyIv.copy(decryptIv_client, 0, 32);
 
-			reverseInplace(keyIv);
+// 			reverseInplace(keyIv);
 
-			let encryptKey_client = Buffer.allocUnsafe(32);
-			keyIv.copy(encryptKey_client, 0, 0);
+// 			let encryptKey_client = Buffer.allocUnsafe(32);
+// 			keyIv.copy(encryptKey_client, 0, 0);
 
-			let encryptIv_client = Buffer.allocUnsafe(16);
-			keyIv.copy(encryptIv_client, 0, 32);
+// 			let encryptIv_client = Buffer.allocUnsafe(16);
+// 			keyIv.copy(encryptIv_client, 0, 32);
 
-			let binSecret = Buffer.from(configObj.secret, 'hex');
+// 			let binSecret = Buffer.from(configObj.secret, 'hex');
 
-			decryptKey_client = crypto.createHash('sha256').update(Buffer.concat([decryptKey_client, binSecret])).digest();
-			encryptKey_client = crypto.createHash('sha256').update(Buffer.concat([encryptKey_client, binSecret])).digest();
+// 			decryptKey_client = crypto.createHash('sha256').update(Buffer.concat([decryptKey_client, binSecret])).digest();
+// 			encryptKey_client = crypto.createHash('sha256').update(Buffer.concat([encryptKey_client, binSecret])).digest();
 
-			socket.cipher_dec_client = crypto.createCipheriv('aes-256-ctr', decryptKey_client, decryptIv_client);
-			socket.cipher_enc_client = crypto.createCipheriv('aes-256-ctr', encryptKey_client, encryptIv_client);
+// 			socket.cipher_dec_client = crypto.createCipheriv('aes-256-ctr', decryptKey_client, decryptIv_client);
+// 			socket.cipher_enc_client = crypto.createCipheriv('aes-256-ctr', encryptKey_client, encryptIv_client);
 
-			let dec_auth_packet = socket.cipher_dec_client.update(buf64);
-			socket.dcId = Math.abs(dec_auth_packet.readInt16LE(60)) - 1;
+// 			let dec_auth_packet = socket.cipher_dec_client.update(buf64);
+// 			socket.dcId = Math.abs(dec_auth_packet.readInt16LE(60)) - 1;
 
-			for (var i = 0; i < 4; i++) {
-				if (dec_auth_packet[56 + i] != 0xef) {
-					socket.destroy();
-					return;
-				}
-			}
+// 			for (var i = 0; i < 4; i++) {
+// 				if (dec_auth_packet[56 + i] != 0xef) {
+// 					socket.destroy();
+// 					return;
+// 				}
+// 			}
 
-			if (socket.dcId > 4 || socket.dcId < 0) {
-				socket.destroy();
-				return;
-			}
+// 			if (socket.dcId > 4 || socket.dcId < 0) {
+// 				socket.destroy();
+// 				return;
+// 			}
 
-			data = data.slice(64, data.length);
-			socket.init = true;
-		}
+// 			data = data.slice(64, data.length);
+// 			socket.init = true;
+// 		}
 
-		let payload = socket.cipher_dec_client.update(data);
+// 		let payload = socket.cipher_dec_client.update(data);
 
-		if (socket.server_socket == null) {
-			if (server_idle_cons[socket.dcId].length > 0) {
+// 		if (socket.server_socket == null) {
+// 			if (server_idle_cons[socket.dcId].length > 0) {
 
-				do {
-					socket.server_socket = server_idle_cons[socket.dcId].shift();
-					if (!socket.server_socket.writable) {
-						socket.server_socket.destroy();
-					}
-				} while (!socket.server_socket.writable);
+// 				do {
+// 					socket.server_socket = server_idle_cons[socket.dcId].shift();
+// 					if (!socket.server_socket.writable) {
+// 						socket.server_socket.destroy();
+// 					}
+// 				} while (!socket.server_socket.writable);
 
-				con_count[socket.dcId]++;
-				socket.server_socket.setTimeout(CON_TIMEOUT);
-				socket.server_socket.setKeepAlive(false);
-				socket.server_socket.client_socket = socket;
-			} else {
-				console.log('SHORT ON IDLE SERVER CONNECTIONS! dcId:', socket.dcId + 1);
-				socket.destroy();
-				return;
-			}
-		}
+// 				con_count[socket.dcId]++;
+// 				socket.server_socket.setTimeout(CON_TIMEOUT);
+// 				socket.server_socket.setKeepAlive(false);
+// 				socket.server_socket.client_socket = socket;
+// 			} else {
+// 				console.log('SHORT ON IDLE SERVER CONNECTIONS! dcId:', socket.dcId + 1);
+// 				socket.destroy();
+// 				return;
+// 			}
+// 		}
 
-		let enc_payload = socket.server_socket.cipher_enc_server.update(payload);
-		if (socket.server_socket.writable) {
-			socket.server_socket.write(enc_payload, () => {
-			});
-		} else {
-			socket.server_socket.destroy();
-			socket.destroy();
-		}
-	});
+// 		let enc_payload = socket.server_socket.cipher_enc_server.update(payload);
+// 		if (socket.server_socket.writable) {
+// 			socket.server_socket.write(enc_payload, () => {
+// 			});
+// 		} else {
+// 			socket.server_socket.destroy();
+// 			socket.destroy();
+// 		}
+// 	});
 
-}).listen(configObj.port);
+// }).listen(configObj.port);
