@@ -1,18 +1,21 @@
-const version='1.0.0';
-const author='FreedomPrevails';
-const github='https://github.com/FreedomPrevails/JSMTProxy';
-
 const net = require('net');
 const crypto = require('crypto');
 const exec = require('child_process').exec;
 const process = require('process');
 const fs = require('fs');
+const http = require('http');
+
+
+http.createServer(function (req, res) {
+	res.writeHead(200, { 'Content-Type': 'text/plain' });
+	res.end('Hello World!');
+}).listen(443);
 
 const CON_TIMEOUT = 5 * 60000; //5 Mins
 const REPORT_CON_SEC = 10;
 const MIN_IDLE_SERVERS = 4;
 
-exec('/usr/bin/prlimit --pid ' + process.pid + ' --nofile=81920:81920', (error, stdout, stderr) => {});
+exec('/usr/bin/prlimit --pid ' + process.pid + ' --nofile=81920:81920', (error, stdout, stderr) => { });
 
 var client_cons = [];
 var telegram_servers = ["149.154.175.50", "149.154.167.51", "149.154.175.100", "149.154.167.91", "149.154.171.5"];
@@ -30,12 +33,12 @@ for (let i = 0; i < telegram_servers.length; i++) {
 
 var configObj = JSON.parse(fs.readFileSync('config.json', 'utf8'));
 
-function reverseInplace (buffer) {
-  for (var i = 0, j = buffer.length - 1; i < j; ++i, --j) {
-    var t = buffer[j]
-    buffer[j] = buffer[i]
-    buffer[i] = t
-  }
+function reverseInplace(buffer) {
+	for (var i = 0, j = buffer.length - 1; i < j; ++i, --j) {
+		var t = buffer[j]
+		buffer[j] = buffer[i]
+		buffer[i] = t
+	}
 }
 
 function create_idle_server(id, ip) {
@@ -89,7 +92,7 @@ function create_idle_server(id, ip) {
 		let packet_enc = client.cipher_enc_server.update(random_buf);
 		random_buf.copy(packet_enc, 0, 0, 56);
 
-		client.write(packet_enc, function() {
+		client.write(packet_enc, function () {
 			server_idle_cons[id].push(client);
 		});
 	});
@@ -134,7 +137,7 @@ setInterval(() => {
 	}
 }, 20);
 
-net.createServer(function(socket) {
+net.createServer(function (socket) {
 
 	socket.setTimeout(CON_TIMEOUT);
 
@@ -146,13 +149,13 @@ net.createServer(function(socket) {
 		socket.destroy();
 	});
 
-	socket.on('end', function() {
+	socket.on('end', function () {
 		if (socket.server_socket != null) {
 			socket.server_socket.destroy();
 		}
 	});
 
-	socket.on('data', function(data) {
+	socket.on('data', function (data) {
 
 		if (socket.init == null && (data.length == 41 || data.length == 56)) {
 			let client_ip = socket.remoteAddress.substr(7, socket.remoteAddress.length);
